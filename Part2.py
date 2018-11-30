@@ -1,108 +1,71 @@
+#Yiyuan Dorothy Zhao and Myra Zaidi
+#CIS490 Term Project Part 2: Fall 2018
+
 class DFA:
 
-    current_state = None;
+    currState = None;
 
-    def __init__(self, states, alphabet, transition_function, start_state, accept_states):
-
+    def __init__ (self, states, alphabet, transFunct, startState, finalState): #M = (Q, sigma, transition function, q0, F)
         self.states = states;
         self.alphabet = alphabet;
-        self.transition_function = transition_function;
-        self.start_state = start_state;
-        self.accept_states = accept_states;
-        self.current_state = start_state;
-
+        self.transFunct = transFunct;
+        self.startState = startState;
+        self.finalState = finalState;
+        self.currState = startState; #start at q0
         return;
 
    
-
-    def transition_to_state_with_input(self, input_value):
-
-        if ((self.current_state, input_value) not in self.transition_function.keys()):
-
-            self.current_state = None;
-
+    def transToStateWithInput(self, inputVal):
+        if ((self.currState, inputVal) not in self.transFunct.keys()): #if given string not in dict, keep current state at none
+            self.currState = None;
             return;
 
-        self.current_state = self.transition_function[(self.current_state, input_value)];
-
+        self.currState = self.transFunct[(self.currState, inputVal)]; #else update current state to transition to state with input
         return;
 
    
+    def inFinalState(self):
+        return self.currState in finalState;
 
-    def in_accept_state(self):
-
-        return self.current_state in accept_states;
-
-   
-
-    def go_to_initial_state(self):
-
-        self.current_state = self.start_state;
-
+    def goToStartState(self):
+        self.currState = self.startState;
         return;
 
-   
 
-    def run_with_input_list(self, input_list):
-
-        self.go_to_initial_state();
-
-        for inp in input_list:
-
-            self.transition_to_state_with_input(inp);
-
+    def inputRun(self, inputList): #run with input
+        self.goToStartState();
+        for i in inputList: #for input in the list
+            self.transToStateWithInput(i); #use the function to put input in list
             continue;
 
-        return self.in_accept_state();
-
+        return self.inFinalState(); #returns the current state in programmed final state
     pass;
 
-states = {0, 1, 2, 3, 4};
+#################################################################
+states = {0, 1, 2, 3}; #q0, q1, q2, q3
+alphabet = {'a', 'b'}; #set of all strings in {a, b}*
 
-#alphabet = {'a', 'b', 'c', 'd'};
-alphabet = {'a', 'b'};
+transFunct = dict(); #place transition functions into dictionary
 
-tf = dict();
+transFunct[(0, 'a')] = 1; #from q0, a goes to q1
+transFunct[(0, 'b')] = 3; #from q0, b goes to q3
 
-tf[(0, 'a')] = 1;
+transFunct[(1, 'a')] = 3; #from q1, a goes to q3
+transFunct[(1, 'b')] = 2; #from q1, b goes to q2 (final state)
 
-tf[(0, 'b')] = 3;
+transFunct[(2, 'a')] = 2; #loop in final state
+transFunct[(2, 'b')] = 2; #loop in final state
 
-#tf[(0, 'c')] = 3;
+transFunct[(3, 'a')] = 3; #loop in trap state
+transFunct[(3, 'b')] = 3; #loop in trap state
 
-#tf[(0, 'd')] = 0;
+startState = 0; #start at q0
+finalState = {2}; #q2 is final state
+#################################################################
 
-tf[(1, 'a')] = 4;
+userDFA = DFA(states, alphabet, transFunct, startState, finalState); #DFA to be created and tested using user-given string
 
-tf[(1, 'b')] = 2;
+userString = input("Enter a string for the DFA: \n"); #asks user to input string
+inputString = list(userString); 
 
-#tf[(1, 'c')] = 3;
-
-#tf[(1, 'd')] = 0;
-
-tf[(2, 'a')] = 2;
-
-tf[(2, 'b')] = 2;
-
-#tf[(2, 'c')] = 3;
-
-#tf[(2, 'd')] = 0;
-
-tf[(3, 'a')] = 3;
-
-tf[(3, 'b')] = 3;
-
-#tf[(3, 'c')] = 3;
-
-#tf[(3, 'd')] = 0;
-
-start_state = 0;
-
-accept_states = {2};
-
-d = DFA(states, alphabet, tf, start_state, accept_states);
-
-testString = input("Enter a string for the DFA \n");
-inp_program = list(testString); 
-
-print (d.run_with_input_list(inp_program));
+print (userDFA.inputRun(inputString));
