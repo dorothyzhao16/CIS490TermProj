@@ -102,6 +102,7 @@ accept_states = {2};
 
 d = DFA(states, alphabet, tf, start_state, accept_states);
 
-inp_program = list('abaabbb');
+testString = input("Enter a string for the DFA \n");
+inp_program = list(testString); 
 
 print (d.run_with_input_list(inp_program));
