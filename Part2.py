@@ -69,10 +69,6 @@ userDFA = DFA(states, alphabet, transFunct, startState, finalState) #DFA to be c
 def showResult():
     inputString = list(e1.get())
     print("Result: %s\n" % (userDFA.inputRun(inputString)))
-#asks user to input string
-#userString = input("Enter a string for the DFA: \n")
-
-#print (userDFA.inputRun(inputString))
 
 master = Tk()
 Label(master, text="Enter a string for the DFA:").grid(row=0)
