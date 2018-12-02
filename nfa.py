@@ -4,63 +4,72 @@ Created on Dec 1, 2018
 @author: zhaod
 '''
 
-# nfa.py: simulate an nfa
 import auto
 import sys
 
-def is_term(s):  # s set, contains term?
+def isFinal(s):  #checks the s set if there is a final state or not
     if not s:
         return False
     else:
         for x in s:
-            if auto.is_terminal(x):
+            if auto.isFinal(x):
                 return True
         return False
 
-def eps_cl(s): # s a set, epsilon closure
-    # could use s for b, save one list
-    t = list(s) # list t is stack or queue
-    b = set(t)  # set of "black" states
-    while len(t) != 0:
-        u = t.pop() # remove end elt
-        # use @ for epsilon
-        r = auto.lookup(u,auto.eps_symb)
-        if r != None:
-            for v in r:
-                if not (v in  b):
-                    b.add(v) # add
-                    t.append(v) # push
-    return b
-    
-auto.read_fa("dfa.auto")
-auto.printfa()
+
+def epsilonClosure(s): #do the epsilon closure for s set
+    m = list(s) 
+    trap = set(m)  #trap states set
+    while len(m) != 0:
+        rem = m.pop() #removes end element
+        c = auto.lookup(rem,auto.epsilonSymbol) #use auto import lookup function
+        
+        if c != None:
+            for d in c:
+                if not (d in trap):
+                    trap.add(d) 
+                    m.append(d) 
+    return trap
+#################################################################  
+auto.readFA("dfa.auto")
+auto.printFinAuto()
+
 sys.stdout.write("\n")
-#################################################################
+
 f = open("dfa.input",'r')
-instr = f.readline()
-ss = auto.get_start_state()
-x = []
-x.append(auto.get_start_state())
-s1 = set(x)
-s1 = eps_cl(s1) # start state
-sys.stdout.write("Start:\n   " +
-       str(list(s1)) + "\n")
+instruct = f.readline()
+
+ss = auto.getStartState()
+
+t = []
+t.append(ss)
+
+s1 = set(t)
+s1 = epsilonClosure(s1)
+
+print("For NFA: 0 = s, 1 = p, 2 = r, 3 = q. \nFor DFA: 0 = spr, 1 = sprq, 2 = prq.\n")
+print("--------------Equivalent DFA Below--------------")
+
+sys.stdout.write("Start at: " + str(list(s1)) + "\n")
 i = 0
-while instr[i] != '$':
+while instruct[i] != '.':
     s2 = set()
-    for y in s1:
-        s = auto.lookup(y, instr[i])
+    for n in s1:
+        s = auto.lookup(n, instruct[i])
         if not s:
             s = set()
         else:
             s = set(s)
-        s2 = s2 | s  # as sets, union
-    # now got set, need epsilon closure
-    s2 = eps_cl(s2)
-    sys.stdout.write(instr[i] + ": " +
-          str(list(s2)))
-    if is_term(s2):
-        sys.stdout.write(" term ")
+        s2 = s2 | s  #union as sets
+    
+    #does epsilon closure below
+    s2 = epsilonClosure(s2)
+    sys.stdout.write(instruct[i] + ": " + str(list(s2)))
+    
+    if isFinal(s2):
+        sys.stdout.write(" accepted ")
+    
     sys.stdout.write("\n")
     s1 = s2
-    i = i + 1 # next instr
+    
+    i = i + 1 #next instruction, count is increment to go to next
