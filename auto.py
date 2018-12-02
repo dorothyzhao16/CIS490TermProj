@@ -4,84 +4,84 @@ Created on Dec 1, 2018
 @author: zhaod
 '''
 
-# fa.py: build internal fa
 import sys
 import re
 
 dfa = True
-fa = []
-ss = 0 # start state
-stn = None  # num of states
-terms = []  # list of terminal states
-symbs = None   # array of symbols
-eps = False
-eps_symb = '@'
+fa = [] #finite automata
 
-# fa is the actual finite automata
-# for i in range(0,stnum):
-#     fa[i] is the ith vertex data
-#     fa[i][0] gives status of ith vertex
-#     fa[i][1] gives the ith adjacency list
+numStates = None  #number of states
+finals = []  #list of final states
+tf = None   #array of transition functions
 
-def read_fa(filename):
+ss = 0 #start state
+
+epsilonSymbol = 'E' #E represents epsilon
+epsilon = False
+
+def readFA(filename):
     f = open(filename,'r')
-    line = f.readline()
-    # get first digit of line 0
-    r1 = re.compile(R"\s*(\d+).*")
-    m1 = r1.search(line)
-    global stn  # the number of states
-    stn = int(m1.group(1))
+    line = f.readline()     #gets firs line 0, first digit
+
+    patt = re.compile(R"\s*(\d+).*") #compiles pattern into pattern objects
+    pattSearch = patt.search(line) #searches first line
     
-    global symbs # all symbs in string
-    # @ = espilon handled as special case
-    symbs = f.readline()
-    # stn many ints on separate lines,
-    #  giving the status of each state
-    #  1 = start, 2 = term, 3 = start and term
-    # stp is the status list for each state
-    stp = f.readline() # each state status
-    ssn = 0  # num of start states (must be 1)
-    tn  = 0  # num of term states (at least 1)
-    for i in range(0,stn):
-        fa.append((int(stp[i]), []))
-        if stp[i] == '1' or stp[i] == '3':
+    global numStates  #global number of states
+    numStates = int(pattSearch.group(1))
+    
+    global tf #all transition functions in the string
+    tf = f.readline()
+
+    status = f.readline() #status list of each state: 1 represents start state, 2 represents terminal state, 3 represents start and terminal state
+    ssn = 0  #number of start states
+    fn  = 0  #number of final states 
+    
+    for n in range(0,numStates):
+        
+        fa.append((int(status[n]), []))
+        
+        if status[n] == '1' or status[n] == '3':
             global ss
-            ss = i
-            ssn = ssn + 1
-        if stp[i] == '2' or stp[i] == '3':
-            terms.append(i)
-            tn = tn + 1
-    if ssn != 1:
-        sys.stdout.write("ERR, != 1 start st")
-    if tn < 1:
-        sys.stdout.write("ERR, 0 term states")
+            ss = n
+            ssn = ssn + 1 #number of start states incremented
+        if status[n] == '2' or status[n] == '3':
+            finals.append(n)
+            fn = fn + 1
             
-    # now work on transition data
+    if ssn != 1:
+        sys.stdout.write("Cannot be more than one start state")
+        
+    if fn < 1:
+        sys.stdout.write("Need at least one final state")
+            
+    #transition functions read here
     r2 = re.compile(R"\s*(\d+)\s+(\S)\s+(\d+)")
-    for line in f:
-        # read tail_state symb head_state
+    for line in f:         #reads tail_state symb head_state
         m2 = r2.search(line)
         st1 = int(m2.group(1))
         st2 = int(m2.group(3))
         sym = m2.group(2)
-        if sym == eps_symb: # check for eps
-            global eps
-            eps = True
-        #  append onto the adjacency list
+        if sym == epsilonSymbol: #checks for epsilon
+            global epsilon
+            epsilon = True
+        # appends onto adjacency list
         fa[st1][1].append( (sym, st2) )
     global dfa
-    dfa = check_dfa()
+    dfa = checkDFA()
     
-def check_dfa():
-    for i in range(0,stn):
-        for ch in symbs: # string of all symbs
-            t = lookup(i, ch)
-            if t != None and len(t) >= 2:
+    
+    
+def checkDFA():
+    for n in range(0,numStates):
+        for ch in tf: #go through each symbol in transition functions
+            check = lookup(n, ch) #looks up if state is usable
+            if check != None and len(check)>=2:
                 return False
     return True
+           
                   
-def lookup(state, symb):
-    ret = []
+def lookup(state, symbol):
+    retFA = [] #variable to be returned with state and symbol
     if state < 0 or state >= len(fa):
         return None
     elif len(fa[state][1]) == 0:
@@ -89,17 +89,18 @@ def lookup(state, symb):
     else:
         t = len(fa[state][1])
         for i in range(0,t):
-            if fa[state][1][i][0] == symb:
-                ret.append(fa[state][1][i][1])
-        return ret
+            if fa[state][1][i][0] == symbol:
+                retFA.append(fa[state][1][i][1])
+        return retFA
 
-def get_start_state():
+
+def getStartState():
     return ss
 
-def terminals():
-    return terms
+def finalStates():
+    return finals
 
-def is_terminal(state):
+def isFinal(state):
     if fa[state][0] == 2 or fa[state][0] == 3:
         return True
     return False
@@ -107,26 +108,28 @@ def is_terminal(state):
 def is_dfa():
     return dfa
     
-def printfa():
-    if eps:
-        sys.stdout.write("NFA with epsilon: ")
+def printFinAuto(): #prints the finite automata, in this case epsilon-NFA
+    if epsilon:
+        sys.stdout.write("-------------------epsilon-NFA-------------------")
     elif dfa:
         sys.stdout.write("DFA: ")
     else:
         sys.stdout.write("NFA: ")
-    sys.stdout.write("States " + str(stn) +
-         ", Symbols: " + symbs + "\n")
-    for i in range(0,stn):
+    
+    sys.stdout.write("\nThe epsilon-NFA has " + str(numStates) + " states, and" + " the transition functions are " + tf + "\n")
+    
+    for i in range(0,numStates):
         if i < 10:
             sys.stdout.write(" " + str(i))
         else:
             sys.stdout.write(str(i))
-        if i == ss:
-            sys.stdout.write("s")
+                     
+        if isFinal(i):
+            sys.stdout.write("t: ")
         else:
-            sys.stdout.write(" ")
-        if is_terminal(i):
-            sys.stdout.write("t:")
-        else:
-            sys.stdout.write(" :")
+            if i == ss:
+                sys.stdout.write("s: ")
+            else:
+                sys.stdout.write(": ")
+            
         print(fa[i])
